@@ -40,7 +40,7 @@ extern "C" {
 }
 #define signals public
 
-#include <unity/unity/unity.h>
+// #include <unity/unity/unity.h>
 
 namespace {
 	bool frameless = true;
@@ -164,15 +164,6 @@ namespace {
 
     typedef guint (*f_g_idle_add)(GSourceFunc function, gpointer data);
     f_g_idle_add ps_g_idle_add = 0;
-
-    typedef void (*f_unity_launcher_entry_set_count)(UnityLauncherEntry* self, gint64 value);
-    f_unity_launcher_entry_set_count ps_unity_launcher_entry_set_count = 0;
-
-    typedef void (*f_unity_launcher_entry_set_count_visible)(UnityLauncherEntry* self, gboolean value);
-    f_unity_launcher_entry_set_count_visible ps_unity_launcher_entry_set_count_visible = 0;
-
-    typedef UnityLauncherEntry* (*f_unity_launcher_entry_get_for_desktop_id)(const gchar* desktop_id);
-    f_unity_launcher_entry_get_for_desktop_id ps_unity_launcher_entry_get_for_desktop_id = 0;
 
     QStringList _initLogs;
 
@@ -334,7 +325,6 @@ namespace {
             if (noQtTrayIcon) cSetSupportTray(false);
             std::cout << "libs init..\n";
             setupGtk();
-            setupUnity();
         }
 
         bool loadLibrary(QLibrary &lib, const char *name, int version) {
@@ -433,19 +423,6 @@ namespace {
             useStatusIcon = true;
             std::cout << "status icon api loaded\n";
         }
-
-        void setupUnity() {
-            if (!useGtkBase || !noQtTrayIcon) return;
-
-            QLibrary lib_unity(QLatin1String("unity"), 9, 0);
-            if (!loadLibrary(lib_unity, "unity", 9)) return;
-
-            if (!loadFunction(lib_unity, "unity_launcher_entry_get_for_desktop_id", ps_unity_launcher_entry_get_for_desktop_id)) return;
-            if (!loadFunction(lib_unity, "unity_launcher_entry_set_count", ps_unity_launcher_entry_set_count)) return;
-            if (!loadFunction(lib_unity, "unity_launcher_entry_set_count_visible", ps_unity_launcher_entry_set_count_visible)) return;
-            useUnityCount = true;
-            std::cout << "unity count api loaded\n";
-        }
     };
     _PsInitializer _psInitializer;
 
@@ -462,8 +439,6 @@ namespace {
 		}
 	};
     _PsEventFilter *_psEventFilter = 0;
-
-    UnityLauncherEntry *_psUnityLauncherEntry = 0;
 };
 
 PsMainWindow::PsMainWindow(QWidget *parent) : QMainWindow(parent),
@@ -591,14 +566,6 @@ void PsMainWindow::psUpdateCounter() {
 	int32 counter = App::histories().unreadFull;
 
     setWindowTitle((counter > 0) ? qsl("Telegram (%1)").arg(counter) : qsl("Telegram"));
-    if (_psUnityLauncherEntry) {
-        if (counter > 0) {
-            ps_unity_launcher_entry_set_count(_psUnityLauncherEntry, (counter > 9999) ? 9999 : counter);
-            ps_unity_launcher_entry_set_count_visible(_psUnityLauncherEntry, TRUE);
-        } else {
-            ps_unity_launcher_entry_set_count_visible(_psUnityLauncherEntry, FALSE);
-        }
-    }
 
     if (noQtTrayIcon) {
         if (useAppIndicator) {
@@ -798,18 +765,7 @@ void PsMainWindow::psCreateTrayIcon() {
 void PsMainWindow::psFirstShow() {
     psCreateTrayIcon();
 
-    if (useUnityCount) {
-        _psUnityLauncherEntry = ps_unity_launcher_entry_get_for_desktop_id("telegramdesktop.desktop");
-        if (_psUnityLauncherEntry) {
-            LOG(("Found Unity Launcher entry telegramdesktop.desktop!"));
-        } else {
-            _psUnityLauncherEntry = ps_unity_launcher_entry_get_for_desktop_id("Telegram.desktop");
-            if (_psUnityLauncherEntry) {
-                LOG(("Found Unity Launcher entry Telegram.desktop!"));
-            } else {
-                LOG(("Could not get Unity Launcher entry!"));
-            }
-        }
+    if (0) {
     } else {
         LOG(("Not using Unity Launcher count."));
     }

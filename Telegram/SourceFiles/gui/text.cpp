@@ -20,7 +20,9 @@ Copyright (c) 2014 John Preston, https://desktop.telegram.org
 
 #include "lang.h"
 
+#include <private/qfontengine_p.h>
 #include <private/qharfbuzz_p.h>
+#include <private/qtextengine_p.h>
 
 namespace {
 
@@ -2890,11 +2892,10 @@ TextBlock::TextBlock(const style::font &font, const QString &str, QFixed minResi
 		if (flags & TextBlockItalic) blockFont = blockFont->italic();
 		if (flags & TextBlockUnderline) blockFont = blockFont->underline();
 
-		QStackTextEngine engine(str.mid(_from, length), blockFont->f);
+        QStackTextEngine engine(str.mid(_from, length), blockFont->f);
 		engine.itemize();
 
-		QTextLayout layout(&engine);
-		layout.beginLayout();
+        QTextLayout layout(engine.text, blockFont->f);
 		layout.createLine();
 
 		BlockParser parser(&engine, this, minResizeWidth, _from);

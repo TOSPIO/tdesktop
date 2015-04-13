@@ -52,7 +52,7 @@ w/CVnbwQOw0g5GBwwFV3r0uTTvy44xx8XXxk+Qknu4eBCsmrAFNnAgMBAAE=\n\
 
 extern const char *privateKey;
 extern const char *privateDevKey;
-#include "../../../../TelegramPrivate/packer_private.h" // RSA PRIVATE KEYS for update signing
+// #include "../../../TelegramPrivate/packer_private.h" // RSA PRIVATE KEYS for update signing
 
 // sha1 hash
 typedef unsigned char uchar;
